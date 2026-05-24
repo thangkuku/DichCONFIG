@@ -713,20 +713,15 @@ const state = {
 // ---- HAN DETECTION (Fixed UTF-8 encoding) ----
 function containsHan(text) {
   if (!text) return false;
-  // Hán tự CJK (Chinese, Japanese Kanji, Korean Hanja)
-  // Range: U+4E00–U+9FFF (CJK Unified Ideographs)
-  // Range: U+3400–U+4DBF (CJK Extension A)
-  // Range: U+20000–U+2A6DF (CJK Extension B, C, D, E)
-  const hanRegex = /[\u4e00-\u9fff\u3400-\u4dbf\uff00-\uffef\u3000-\u303f]|[\uD840-\uD869][\uDC00-\uDED4]|[\uD869][\uDF00-\uDEFF]|[\uD86D][\uDC00-\uDEFF]|[\uD86E][\uDC00-\uDEFF]/g;
-  return hanRegex.test(text);
+  return /[\u4e00-\u9fff\u3400-\u4dbf\uff00-\uffef\u3000-\u303f]/.test(text) ||
+    /\uD840[\uDC00-\uDFFF]|[\uD841-\uD868][\uDC00-\uDFFF]|\uD869[\uDC00-\uDEDF]/.test(text);
 }
 
 function countHan(text) {
   if (!text) return 0;
-  // Chi tiết hơn, bắt cả surrogate pairs (surrogate pairs cho character ngoài BMP)
-  const hanRegex = /[\u4e00-\u9fff\u3400-\u4dbf]|[\uD840-\uD869][\uDC00-\uDED4]|[\uD869][\uDF00-\uDEFF]|[\uD86D][\uDC00-\uDEFF]|[\uD86E][\uDC00-\uDEFF]/g;
-  const matches = text.match(hanRegex);
-  return matches ? matches.length : 0;
+  const basic = text.match(/[\u4e00-\u9fff\u3400-\u4dbf]/g) || [];
+  const ext = text.match(/\uD840[\uDC00-\uDFFF]|[\uD841-\uD868][\uDC00-\uDFFF]|\uD869[\uDC00-\uDEDF]/g) || [];
+  return basic.length + ext.length;
 }
 
 // ---- FILE ICON ----

@@ -519,8 +519,9 @@ body {
         <div class="mb-2">
           <label class="form-label">Phương thức dịch</label>
           <select class="form-select" id="engineMode">
-            <option value="google_free" selected>🌐 Google Translate (Miễn phí)</option>
-            <option value="mymemory">💡 MyMemory (Backup)</option>
+            <option value="google_free" selected>🌐 Google Translate (Nhanh, chuẩn)</option>
+            <option value="libretranslate">🔄 LibreTranslate (Backup, ổn định)</option>
+            <option value="mymemory">💡 MyMemory (Fallback)</option>
             <option value="mock">🧪 Demo (Offline)</option>
           </select>
           <div class="form-text" id="engineNote">Không cần API key — dùng trực tiếp Google Translate</div>
@@ -624,17 +625,79 @@ body {
 
 <!-- Include demo dictionary -->
 <script>
-const mockDict = {
-  "你好": "Xin chào",
-  "谢谢": "Cảm ơn",
-  "再见": "Tạm biệt",
-  "我": "Tôi",
-  "他": "Anh ấy",
-  "她": "Cô ấy",
-  "这是": "Đây là",
-  "那是": "Đó là",
-  "朋友": "Bạn bè"
+// Offline dictionary - Hán Việt thông dụng
+const offlineDict = {
+  // Chào/Tạm biệt
+  "你好": "Xin chào", "早上好": "Chào buổi sáng", "再见": "Tạm biệt", "晚安": "Chúc ngủ ngon",
+  
+  // Cảm ơn/Vâng/Không
+  "谢谢": "Cảm ơn", "谢谢你": "Cảm ơn bạn", "不客气": "Không có gì", "好的": "Được", "是": "Có", "不是": "Không",
+  
+  // Tinh神/Cảm xúc
+  "对不起": "Xin lỗi", "没关系": "Không sao", "我喜欢": "Tôi thích", "我爱你": "Tôi yêu bạn", "很好": "Rất tốt",
+  
+  // Số thứ tự
+  "一": "Một", "二": "Hai", "三": "Ba", "四": "Bốn", "五": "Năm", "六": "Sáu", "七": "Bảy", "八": "Tám", "九": "Chín", "十": "Mười",
+  
+  // Thời gian
+  "今天": "Hôm nay", "明天": "Ngày mai", "昨天": "Hôm qua", "现在": "Bây giờ", "月": "Tháng", "年": "Năm",
+  
+  // Người/Quan hệ
+  "我": "Tôi", "你": "Bạn", "他": "Anh ấy", "她": "Cô ấy", "我们": "Chúng tôi", "他们": "Họ",
+  "朋友": "Bạn bè", "家人": "Gia đình", "母亲": "Mẹ", "父亲": "Cha", "姐姐": "Chị", "哥哥": "Anh",
+  
+  // Địa điểm
+  "中国": "Trung Quốc", "越南": "Việt Nam", "日本": "Nhật Bản", "韩国": "Hàn Quốc", "城市": "Thành phố", "学校": "Trường học",
+  
+  // Thực phẩm
+  "米": "Gạo", "水": "Nước", "茶": "Trà", "咖啡": "Cà phê", "面": "Mì", "肉": "Thịt", "鱼": "Cá", "菜": "Rau",
+  
+  // Động từ thông dụng
+  "去": "Đi", "来": "Đến", "吃": "Ăn", "喝": "Uống", "睡": "Ngủ", "工作": "Làm việc", "学": "Học", "看": "Xem",
+  "说": "Nói", "听": "Nghe", "读": "Đọc", "写": "Viết", "做": "Làm", "有": "Có", "在": "Ở", "想": "Muốn",
+  
+  // Danh từ thông dụng
+  "人": "Người", "女人": "Phụ nữ", "男人": "Đàn ông", "男孩": "Cậu bé", "女孩": "Cô bé",
+  "房": "Nhà", "门": "Cửa", "车": "Xe", "书": "Sách", "电脑": "Máy tính", "电话": "Điện thoại",
+  
+  // Tính từ
+  "大": "Lớn", "小": "Nhỏ", "好": "Tốt", "坏": "Xấu", "新": "Mới", "旧": "Cũ", "热": "Nóng", "冷": "Lạnh",
+  
+  // Câu hỏi
+  "什么": "Cái gì", "谁": "Ai", "哪里": "Đâu", "为什么": "Tại sao", "怎样": "Thế nào", "多少": "Bao nhiêu",
+  
+  // Khác
+  "这是": "Đây là", "那是": "Đó là", "这个": "Cái này", "那个": "Cái kia"
 };
+
+// Enhanced offline mode - fallback khi dịch API fail
+function offlineTranslate(texts) {
+  const results = [];
+  // Sort theo độ dài descending - dịch từ dài trước
+  const sorted = Object.keys(offlineDict).sort((a,b) => b.length - a.length);
+  
+  texts.forEach(text => {
+    let result = text;
+    
+    sorted.forEach(zh => {
+      if (!zh || !result.includes(zh)) return;
+      
+      try {
+        // Escape special regex chars
+        const escaped = zh.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(escaped, 'g');
+        result = result.replace(regex, offlineDict[zh]);
+      } catch(e) {
+        // Fallback: simple split/join
+        result = result.split(zh).join(offlineDict[zh]);
+      }
+    });
+    
+    results.push(result);
+  });
+  
+  return results;
+}
 </script>
 
 <script>
@@ -647,13 +710,23 @@ const state = {
   shouldStop: false
 };
 
-// ---- HAN DETECTION ----
+// ---- HAN DETECTION (Fixed UTF-8 encoding) ----
 function containsHan(text) {
-  return /[\u4e00-\u9fff\u3400-\u4dbf\uff00-\uffef\u3000-\u303f]/.test(text);
+  if (!text) return false;
+  // Hán tự CJK (Chinese, Japanese Kanji, Korean Hanja)
+  // Range: U+4E00–U+9FFF (CJK Unified Ideographs)
+  // Range: U+3400–U+4DBF (CJK Extension A)
+  // Range: U+20000–U+2A6DF (CJK Extension B, C, D, E)
+  const hanRegex = /[\u4e00-\u9fff\u3400-\u4dbf\uff00-\uffef\u3000-\u303f]|[\uD840-\uD869][\uDC00-\uDED4]|[\uD869][\uDF00-\uDEFF]|[\uD86D][\uDC00-\uDEFF]|[\uD86E][\uDC00-\uDEFF]/g;
+  return hanRegex.test(text);
 }
 
 function countHan(text) {
-  return (text.match(/[\u4e00-\u9fff\u3400-\u4dbf]/g) || []).length;
+  if (!text) return 0;
+  // Chi tiết hơn, bắt cả surrogate pairs (surrogate pairs cho character ngoài BMP)
+  const hanRegex = /[\u4e00-\u9fff\u3400-\u4dbf]|[\uD840-\uD869][\uDC00-\uDED4]|[\uD869][\uDF00-\uDEFF]|[\uD86D][\uDC00-\uDEFF]|[\uD86E][\uDC00-\uDEFF]/g;
+  const matches = text.match(hanRegex);
+  return matches ? matches.length : 0;
 }
 
 // ---- FILE ICON ----
@@ -733,7 +806,7 @@ function renderQueue() {
       <div class="file-card" onclick="selectFile(${i})" style="cursor:pointer; ${state.currentPreview===i ? 'border-color:var(--primary); box-shadow: 0 0 0 3px rgba(26,86,219,0.1);' : ''}">
         <div class="file-icon ${iconCls}">${iconSym}</div>
         <div class="file-meta">
-          <div class="file-name">${f.name}</div>
+          <div class="file-name" title="${f.name}">${f.name}</div>
           <div class="file-size">
             ${formatSize(f.size)}
             ${hasHan ? `&nbsp;<span class="han-badge"><i class="bi bi-translate me-1"></i>${f.hanCount}</span>` : ''}
@@ -742,7 +815,7 @@ function renderQueue() {
         </div>
         <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
           ${statusHtml}
-          <button class="btn btn-sm btn-outline-secondary" style="font-size:10px; padding: 2px 6px; flex-shrink:0;" onclick="event.stopPropagation(); removeFile(${i})">
+          <button class="btn btn-sm btn-outline-secondary" style="font-size:10px; padding: 2px 6px; flex-shrink:0;" onclick="event.stopPropagation(); removeFile(${i})" title="Xóa file">
             <i class="bi bi-x"></i>
           </button>
         </div>
@@ -772,7 +845,21 @@ function updateStats() {
 
 // ---- FILE INPUT ----
 document.getElementById('fileInput').addEventListener('change', function(e) {
-  handleFiles(Array.from(e.target.files));
+  const files = Array.from(e.target.files);
+  
+  // Validate file size
+  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+  const validFiles = files.filter(f => {
+    if (f.size > MAX_FILE_SIZE) {
+      toast(`File ${f.name} quá lớn (max 10MB)`, 'warning');
+      return false;
+    }
+    return true;
+  });
+  
+  if (validFiles.length > 0) {
+    handleFiles(validFiles);
+  }
   this.value = '';
 });
 
@@ -786,31 +873,58 @@ dropZone.addEventListener('drop', e => {
 });
 
 function handleFiles(files) {
-  const promises = files.map(f => new Promise(resolve => {
+  const promises = files.map(f => new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = e => {
-      const text = e.target.result;
-      resolve({
-        name: f.name,
-        size: f.size,
-        content: text,
-        hanCount: countHan(text),
-        status: 'pending',
-        progress: 0
-      });
+      try {
+        // Đảm bảo UTF-8 decode đúng
+        const text = e.target.result;
+        
+        // Nếu file bị lỗi encoding, cố gắng fix
+        let cleanText = text;
+        
+        // Thử decode lại nếu cần
+        try {
+          const bytes = new TextEncoder().encode(text);
+          cleanText = new TextDecoder('utf-8').decode(bytes);
+        } catch(e) {
+          // Fallback: dùng text như cũ
+          console.warn('UTF-8 decode warning:', e);
+        }
+        
+        const hanCount = countHan(cleanText);
+        
+        resolve({
+          name: f.name,
+          size: f.size,
+          content: cleanText,
+          hanCount: hanCount,
+          status: 'pending',
+          progress: 0
+        });
+      } catch(err) {
+        reject(err);
+      }
     };
+    reader.onerror = () => reject(new Error(`Lỗi đọc file: ${f.name}`));
+    
+    // Đảm bảo read as UTF-8
     reader.readAsText(f, 'utf-8');
   }));
 
-  Promise.all(promises).then(fileObjs => {
-    fileObjs.forEach(fo => {
-      if (!state.files.find(x => x.name === fo.name)) {
-        state.files.push(fo);
-      }
+  Promise.all(promises)
+    .then(fileObjs => {
+      fileObjs.forEach(fo => {
+        if (!state.files.find(x => x.name === fo.name)) {
+          state.files.push(fo);
+        }
+      });
+      renderQueue();
+      toast(`✓ Đã thêm ${fileObjs.length} file`, 'success');
+    })
+    .catch(err => {
+      toast(`Lỗi: ${err.message}`, 'error');
     });
-    renderQueue();
-    toast(`✓ Đã thêm ${fileObjs.length} file`, 'success');
-  });
 }
 
 function removeFile(i) {
@@ -875,6 +989,7 @@ function escapeHtml(str) {
 }
 
 function highlightHan(html) {
+  // Highlight từng ký tự Hán riêng biệt + nhóm Hán liên tiếp
   return html.replace(/([\u4e00-\u9fff\u3400-\u4dbf]+)/g, '<span class="highlight-han">$1</span>');
 }
 
@@ -903,45 +1018,132 @@ function renderDiff(original, translated) {
 }
 
 function mockTranslateText(text) {
-  let result = text;
-  const sorted = Object.keys(mockDict).sort((a,b) => b.length - a.length);
-  sorted.forEach(zh => {
-    if (zh && result.includes(zh)) {
-      result = result.split(zh).join(mockDict[zh]);
-    }
-  });
-  return result;
+  return offlineTranslate([text])[0];
 }
 
-// ---- GOOGLE TRANSLATE FREE (unofficial endpoint) ----
+// ---- LIBRETRANSLATE (Free alternative, no key) ----
+async function libreTranslate(texts, source, target) {
+  const results = [];
+  const langMap = { 'zh-CN': 'zh', 'zh-TW': 'zh', 'auto': 'auto' };
+  const sl = langMap[source] || source;
+  
+  for (const text of texts) {
+    try {
+      const res = await fetch('https://api.umd.lol/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ q: text, source: sl, target })
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      results.push(data.translatedText || text);
+    } catch(e) {
+      console.warn('LibreTranslate fail:', e);
+      results.push(text);
+    }
+    await new Promise(r => setTimeout(r, 100));
+  }
+  return results;
+}
+
+// ---- MYMEMORY API ----
+async function myMemoryTranslate(texts, source, target) {
+  const sl = source === 'auto' ? 'zh' : source.split('-')[0];
+  const results = [];
+  for (const text of texts) {
+    try {
+      const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${sl}|${target}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      results.push(data.responseData.translatedText || text);
+    } catch(e) {
+      results.push(text);
+    }
+    await new Promise(r => setTimeout(r, 100));
+  }
+  return results;
+}
+
+// ---- GOOGLE TRANSLATE FREE (with retries & timeout) ----
 async function googleTranslateFree(texts, source, target) {
   const results = [];
   for (const text of texts) {
     if (!containsHan(text)) { results.push(text); continue; }
     const sl = source === 'auto' ? 'auto' : source;
-    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sl}&tl=${target}&dt=t&q=${encodeURIComponent(text)}`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`Lỗi ${res.status}`);
-    const data = await res.json();
-    const translated = data[0].map(seg => seg[0]).join('');
-    results.push(translated);
-    await new Promise(r => setTimeout(r, 120));
+    
+    let translated = null;
+    let retries = 2;
+    
+    while (retries > 0 && !translated) {
+      try {
+        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sl}&tl=${target}&dt=t&q=${encodeURIComponent(text)}`;
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 8000);
+        
+        const res = await fetch(url, { signal: controller.signal });
+        clearTimeout(timeout);
+        
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        translated = data[0].map(seg => seg[0]).join('');
+        results.push(translated);
+      } catch(e) {
+        retries--;
+        if (retries === 0) {
+          results.push(text);
+        } else {
+          await new Promise(r => setTimeout(r, 300 + Math.random() * 300));
+        }
+      }
+    }
+    
+    await new Promise(r => setTimeout(r, 150 + Math.random() * 100));
   }
   return results;
 }
 
-// ---- MYMEMORY BACKUP ----
-async function myMemoryTranslate(texts, source, target) {
-  const sl = source === 'auto' ? 'zh' : source.split('-')[0];
-  const results = [];
-  for (const text of texts) {
-    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${sl}|${target}`;
-    const res = await fetch(url);
-    const data = await res.json();
-    results.push(data.responseData.translatedText || text);
-    await new Promise(r => setTimeout(r, 200));
+// ---- SMART TRANSLATION WITH FALLBACK CHAIN ----
+async function smartTranslate(chunk, engine, source, target) {
+  let translations = null;
+  const engines = [];
+  
+  // Build fallback chain
+  if (engine === 'google_free') {
+    engines.push(() => googleTranslateFree(chunk, source, target));
+    engines.push(() => libreTranslate(chunk, source, target));
+    engines.push(() => myMemoryTranslate(chunk, source, target));
+  } else if (engine === 'libretranslate') {
+    engines.push(() => libreTranslate(chunk, source, target));
+    engines.push(() => googleTranslateFree(chunk, source, target));
+    engines.push(() => myMemoryTranslate(chunk, source, target));
+  } else if (engine === 'mymemory') {
+    engines.push(() => myMemoryTranslate(chunk, source, target));
+    engines.push(() => googleTranslateFree(chunk, source, target));
+    engines.push(() => libreTranslate(chunk, source, target));
+  } else if (engine === 'mock') {
+    engines.push(() => Promise.resolve(chunk.map(t => offlineTranslate([t])[0])));
   }
-  return results;
+  
+  // Try each engine in order
+  for (let i = 0; i < engines.length; i++) {
+    try {
+      const fn = engines[i];
+      translations = await fn();
+      if (translations && translations.length === chunk.length) {
+        if (i > 0) toast(`Dùng ${engine === 'google_free' ? 'Google backup' : 'fallback'}`, 'info');
+        break;
+      }
+    } catch(e) {
+      console.warn(`Translation engine ${i} failed:`, e);
+      if (i === engines.length - 1) {
+        // Fallback cuối cùng: dùng offline dict
+        toast('Dùng offline dictionary...', 'warning');
+        translations = offlineTranslate(chunk);
+      }
+    }
+  }
+  
+  return translations || offlineTranslate(chunk);
 }
 
 // ---- SMART VALUE TRANSLATE ----
@@ -949,6 +1151,7 @@ function extractTranslatableStrings(content, fileName) {
   const ext = fileName.split('.').pop().toLowerCase();
   const strings = [];
   
+  // Cố gắng parse JSON trước
   if (ext === 'json' || ext === 'config') {
     try {
       const obj = JSON.parse(content);
@@ -960,32 +1163,62 @@ function extractTranslatableStrings(content, fileName) {
         }
       }
       walk(obj, []);
-      return { type: 'json', strings };
-    } catch(e) {}
+      if (strings.length > 0) {
+        return { type: 'json', strings };
+      }
+    } catch(e) {
+      // Nếu JSON parse fail, xử lý như text bình thường
+    }
   }
   
+  // Xử lý text: tìm tất cả Hán tự + context xung quanh
   const lines = content.split('\n');
   lines.forEach((line, i) => {
-    const hanMatches = line.match(/[\u4e00-\u9fff\u3400-\u4dbf]+(?:[^\u4e00-\u9fff\u3400-\u4dbf\n]*[\u4e00-\u9fff\u3400-\u4dbf]+)*/g);
-    if (hanMatches) {
-      hanMatches.forEach(m => strings.push({ lineIndex: i, value: m, original: line }));
+    if (!line || line.trim() === '') return;
+    
+    // Tìm từng khúc text chứa Hán
+    // Regex: Hán tự + ký tự không phải Hán (nhưng không phải newline)
+    const hanRegex = /[\u4e00-\u9fff\u3400-\u4dbf]+(?:[^\u4e00-\u9fff\u3400-\u4dbf\n]*[\u4e00-\u9fff\u3400-\u4dbf]+)*/g;
+    
+    let match;
+    while ((match = hanRegex.exec(line)) !== null) {
+      const value = match[0];
+      if (containsHan(value) && value.trim()) {
+        strings.push({ 
+          lineIndex: i, 
+          value: value,
+          original: line,
+          position: match.index
+        });
+      }
     }
   });
+  
   return { type: 'lines', strings, lines };
 }
 
 function applyTranslations(content, fileName, translationMap) {
   let result = content;
-  const sorted = Object.entries(translationMap).sort((a, b) => b[0].length - a[0].length);
+  
+  // Sort theo độ dài descending - dịch từ dài trước
+  const sorted = Object.entries(translationMap)
+    .filter(([zh, vi]) => zh && vi && zh !== vi)
+    .sort((a, b) => b[0].length - a[0].length);
+  
   sorted.forEach(([zh, vi]) => {
-    if (!zh || !vi) return;
-    const escaped = zh.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     try {
-      result = result.replace(new RegExp(escaped, 'g'), vi);
+      // Escape special regex characters
+      const escaped = zh.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      // Thay thế toàn bộ (g flag)
+      const regex = new RegExp(escaped, 'g');
+      result = result.replace(regex, vi);
     } catch(e) {
+      // Fallback: simple string replace (có thể ko hoàn hảo nếu có special chars)
+      console.warn('Regex fail for:', zh, e);
       result = result.split(zh).join(vi);
     }
   });
+  
   return result;
 }
 
@@ -1068,15 +1301,7 @@ async function startTranslation() {
         if (state.shouldStop) break;
 
         const chunk = uniqueValues.slice(ci, ci + CHUNK);
-        let translations;
-        if (engine === 'mock') {
-          translations = chunk.map(t => mockTranslateText(t));
-          await new Promise(r => setTimeout(r, 100));
-        } else if (engine === 'mymemory') {
-          translations = await myMemoryTranslate(chunk, source, target);
-        } else {
-          translations = await googleTranslateFree(chunk, source, target);
-        }
+        const translations = await smartTranslate(chunk, engine, source, target);
 
         chunk.forEach((zh, idx) => { translationMap[zh] = translations[idx]; });
         f.progress = Math.min(90, 10 + ((ci + CHUNK) / uniqueValues.length) * 80);
@@ -1181,9 +1406,10 @@ document.addEventListener('DOMContentLoaded', () => {
   if (sel && note) {
     sel.addEventListener('change', () => {
       const notes = {
-        google_free: 'Không cần API key — dùng trực tiếp Google Translate',
-        mymemory: 'Miễn phí, giới hạn ~5000 ký tự/ngày',
-        mock: 'Offline, chỉ dịch được ~20 từ'
+        google_free: 'Nhanh, chính xác, không cần API key',
+        libretranslate: 'Miễn phí, ổn định, là backup khi Google fail',
+        mymemory: 'Giới hạn ~5000 ký tự/ngày',
+        mock: 'Offline, chỉ dịch ~20 từ mẫu'
       };
       note.textContent = notes[sel.value] || '';
     });

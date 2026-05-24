@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dịch File Hán Tự — Translator Pro</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<style>
+:root {
+  --primary: #1a56db;
+  --primary-dark: #1e429f;
+  --primary-light: #ebf5ff;
+  --accent: #f59e0b;
+  --success: #059669;
+  --danger: #dc2626;
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --border: #e2e8f0;
+  --text: #0f172a;
+  --muted: #64748b;
+  --code-bg: #0f172a;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Be Vietnam Pro', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* NAV */
+.navbar-brand span { color: var(--accent); }
+.nav-pill {
+  background: rgba(255,255,255,0.12);
+  border-radius: 8px;
+  padding: 6px 14px;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.nav-pill:hover { background: rgba(255,255,255,0.22); color:#fff; }
+
+/* UPLOAD ZONE */
+.drop-zone {
+  border: 2px dashed #94a3b8;
+  border-radius: 16px;
+  padding: 48px 32px;
+  text-align: center;
+  background: var(--surface);
+  transition: all 0.2s;
+  cursor: pointer;
+}
+.drop-zone.drag-over {
+  border-color: var(--primary);
+  background: var(--primary-light);
+}
+.drop-zone .icon-wrap {
+  width: 64px; height: 64px;
+  background: var(--primary-light);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 16px;
+  font-size: 28px; color: var(--primary);
+}
+.drop-zone h5 { font-weight: 600; color: var(--text); margin-bottom: 6px; }
+.drop-zone p { color: var(--muted); font-size: 14px; }
+.btn-browse {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 20px;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-top: 12px;
+}
+.btn-browse:hover { background: var(--primary-dark); }
+
+/* FILE QUEUE */
+.file-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: box-shadow 0.2s;
+  margin-bottom: 8px;
+}
+.file-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
+.file-icon {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0;
+}
+.file-icon.json { background: #fef3c7; color: #b45309; }
+.file-icon.config { background: #e0e7ff; color: #4338ca; }
+.file-icon.txt { background: #d1fae5; color: #065f46; }
+.file-icon.other { background: #fce7f3; color: #be185d; }
+.file-meta { flex: 1; min-width: 0; }
+.file-name { font-weight: 500; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.file-size { font-size: 12px; color: var(--muted); }
+.file-status {
+  font-size: 12px; font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+.status-pending { background: #f1f5f9; color: #64748b; }
+.status-no-han { background: #fef3c7; color: #92400e; }
+.status-translating { background: #dbeafe; color: var(--primary-dark); }
+.status-done { background: #d1fae5; color: #065f46; }
+.status-error { background: #fee2e2; color: #991b1b; }
+
+/* PROGRESS BAR */
+.translate-progress {
+  height: 4px;
+  border-radius: 2px;
+  background: #e2e8f0;
+  overflow: hidden;
+  margin-top: 6px;
+}
+.translate-progress-bar {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 2px;
+  transition: width 0.3s;
+}
+
+/* PREVIEW PANEL */
+.preview-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+}
+.preview-header {
+  background: #0f172a;
+  padding: 12px 16px;
+  display: flex; align-items: center; gap: 10px;
+}
+.preview-header .dot { width: 12px; height: 12px; border-radius: 50%; }
+.preview-tabs { display: flex; gap: 4px; }
+.preview-tab {
+  background: rgba(255,255,255,0.1);
+  color: #94a3b8;
+  border: none;
+  border-radius: 6px;
+  padding: 5px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Be Vietnam Pro', sans-serif;
+}
+.preview-tab.active { background: rgba(255,255,255,0.2); color: #fff; }
+.preview-body {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  line-height: 1.7;
+  padding: 16px;
+  max-height: 400px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+  color: #334155;
+  background: #f8fafc;
+}
+.preview-body.dark {
+  background: #1e293b;
+  color: #e2e8f0;
+}
+.highlight-han { background: #fef3c7; color: #92400e; border-radius: 3px; padding: 0 2px; }
+.highlight-translated { background: #d1fae5; color: #065f46; border-radius: 3px; padding: 0 2px; }
+
+/* STATS */
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+}
+.stat-val { font-size: 28px; font-weight: 700; color: var(--primary); }
+.stat-label { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+/* SETTINGS */
+.settings-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+}
+.form-label { font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px; }
+.form-control, .form-select {
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  font-size: 13px;
+  padding: 8px 12px;
+}
+.form-control:focus, .form-select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(26,86,219,0.12);
+}
+
+/* ACTION BUTTONS */
+.btn-translate {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 28px;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex; align-items: center; gap: 8px;
+}
+.btn-translate:hover { background: var(--primary-dark); transform: translateY(-1px); }
+.btn-translate:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.btn-clear {
+  background: #fff;
+  color: #64748b;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 20px;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-clear:hover { background: #f1f5f9; }
+.btn-download {
+  background: var(--success);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 20px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex; align-items: center; gap: 6px;
+}
+.btn-download:hover { background: #047857; }
+.btn-download:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* HAN FILTER BADGE */
+.han-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: #fef3c7;
+  color: #92400e;
+  border-radius: 20px;
+  padding: 3px 10px;
+  font-size: 12px; font-weight: 500;
+}
+
+/* TOAST */
+.toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 9999; }
+.toast-msg {
+  background: #0f172a;
+  color: #fff;
+  border-radius: 10px;
+  padding: 12px 18px;
+  font-size: 13px;
+  font-weight: 500;
+  margin-top: 8px;
+  display: flex; align-items: center; gap: 8px;
+  animation: slideUp 0.3s ease;
+  max-width: 320px;
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* FILE QUEUE BOX */
+.file-queue-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 0;
+}
+.file-queue-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  border-radius: 16px 16px 0 0;
+}
+.file-queue-scroll {
+  max-height: 280px;
+  overflow-y: auto;
+  padding: 8px 10px;
+}
+.file-queue-scroll .file-card {
+  margin-bottom: 6px;
+  border-radius: 10px;
+}
+.file-queue-scroll .file-card:last-child {
+  margin-bottom: 0;
+}
+.file-queue-scroll .empty-state {
+  padding: 24px 16px;
+}
+
+/* EMPTY STATE */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--muted);
+}
+.empty-state i { font-size: 40px; opacity: 0.3; display: block; margin-bottom: 12px; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+
+/* PULSE ANIMATION */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+.translating-pulse { animation: pulse 1.2s infinite; }
+
+/* Section Title */
+.section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 12px;
+}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-dark py-2" style="background: linear-gradient(135deg, #1a56db 0%, #1e429f 100%); box-shadow: 0 2px 12px rgba(26,86,219,0.25);">
+  <div class="container-fluid px-4">
+    <div class="navbar-brand d-flex align-items-center gap-2 fw-bold fs-5">
+      <i class="bi bi-translate" style="font-size:22px;"></i>
+      Hán<span>Dịch</span>
+      <span class="badge ms-1" style="background:rgba(255,255,255,0.18); font-size:10px; font-weight:500;">PRO</span>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <button class="nav-pill" onclick="showSection('translate')"><i class="bi bi-file-earmark-text me-1"></i>Dịch File</button>
+      <button class="nav-pill" onclick="showSection('history')"><i class="bi bi-clock-history me-1"></i>Lịch Sử</button>
+      <button class="nav-pill" onclick="showSection('settings')"><i class="bi bi-gear me-1"></i>Cài Đặt</button>
+    </div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div class="container-fluid px-4 py-4">
+  <div class="row g-4">
+
+    <!-- LEFT COLUMN -->
+    <div class="col-lg-5">
+
+      <!-- DROP ZONE -->
+      <div class="section-title"><i class="bi bi-cloud-upload me-1"></i>Tải File Lên</div>
+      <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+        <div class="icon-wrap"><i class="bi bi-file-earmark-arrow-up"></i></div>
+        <h5>Kéo thả file vào đây</h5>
+        <p>Hỗ trợ .txt, .json, .config, .xml, .csv, .ini, .yaml, .log</p>
+        <button class="btn-browse" onclick="event.stopPropagation(); document.getElementById('fileInput').click()">
+          <i class="bi bi-folder2-open me-1"></i>Chọn File
+        </button>
+        <p class="mt-2" style="font-size:12px; color:#94a3b8;">Có thể chọn nhiều file cùng lúc</p>
+      </div>
+      <input type="file" id="fileInput" multiple accept=".txt,.json,.config,.xml,.csv,.ini,.yaml,.log,.cfg,.properties,.toml" style="display:none">
+
+      <!-- STATS ROW -->
+      <div class="row g-2 mt-3">
+        <div class="col-3">
+          <div class="stat-card">
+            <div class="stat-val" id="statTotal">0</div>
+            <div class="stat-label">Tổng file</div>
+          </div>
+        </div>
+        <div class="col-3">
+          <div class="stat-card">
+            <div class="stat-val" id="statHan" style="color:#b45309;">0</div>
+            <div class="stat-label">Có Hán tự</div>
+          </div>
+        </div>
+        <div class="col-3">
+          <div class="stat-card">
+            <div class="stat-val" id="statDone" style="color:var(--success);">0</div>
+            <div class="stat-label">Đã dịch</div>
+          </div>
+        </div>
+        <div class="col-3">
+          <div class="stat-card">
+            <div class="stat-val" id="statError" style="color:var(--danger);">0</div>
+            <div class="stat-label">Lỗi</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div class="settings-panel mt-3">
+        <div class="section-title"><i class="bi bi-sliders me-1"></i>Cài Đặt Dịch</div>
+        <div class="mb-2">
+          <label class="form-label">Phương thức dịch</label>
+          <select class="form-select" id="engineMode">
+            <option value="google_free" selected>🌐 Google Translate (Miễn phí)</option>
+            <option value="mymemory">💡 MyMemory (Backup, 5000 ký tự/ngày)</option>
+            <option value="mock">🧪 Demo (Từ điển mẫu, offline)</option>
+          </select>
+          <div class="form-text" id="engineNote">Không cần API key — dùng trực tiếp Google Translate</div>
+        </div>
+        <div class="row g-2">
+          <div class="col-6">
+            <label class="form-label">Ngôn ngữ nguồn</label>
+            <select class="form-select" id="sourceLang">
+              <option value="zh-CN" selected>Tiếng Trung (Giản thể)</option>
+              <option value="zh-TW">Tiếng Trung (Phồn thể)</option>
+              <option value="ja">Tiếng Nhật</option>
+              <option value="ko">Tiếng Hàn</option>
+              <option value="auto">Tự động phát hiện</option>
+            </select>
+          </div>
+          <div class="col-6">
+            <label class="form-label">Ngôn ngữ đích</label>
+            <select class="form-select" id="targetLang">
+              <option value="vi" selected>Tiếng Việt</option>
+              <option value="en">Tiếng Anh</option>
+            </select>
+          </div>
+        </div>
+        <div class="mt-2">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="keepStructure" checked>
+            <label class="form-check-label" style="font-size:13px;" for="keepStructure">Giữ nguyên cấu trúc file (key, dấu ngoặc, cú pháp)</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="onlyHan" checked>
+            <label class="form-check-label" style="font-size:13px;" for="onlyHan">Chỉ dịch file chứa Hán tự</label>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ACTION BUTTONS -->
+      <div class="d-flex gap-2 mt-3 align-items-center flex-wrap">
+        <button class="btn-translate flex-grow-1" id="btnTranslate" onclick="startTranslation()" disabled>
+          <i class="bi bi-translate"></i> Bắt Đầu Dịch
+        </button>
+        <button class="btn-pause" id="btnPause" onclick="togglePause()" style="display:none; background:#f59e0b; color:#fff; border:none; border-radius:10px; padding:12px 16px; font-weight:600; font-size:14px; cursor:pointer;">
+          <i class="bi bi-pause-fill" id="pauseIcon"></i>
+        </button>
+        <button class="btn-stop" id="btnStop" onclick="stopTranslation()" style="display:none; background:#ef4444; color:#fff; border:none; border-radius:10px; padding:12px 16px; font-weight:600; font-size:14px; cursor:pointer;">
+          <i class="bi bi-stop-fill"></i>
+        </button>
+        <button class="btn-clear" onclick="clearAll()"><i class="bi bi-trash"></i> Xóa</button>
+        <button class="btn-download" id="btnDownload" onclick="downloadAll()" disabled>
+          <i class="bi bi-download"></i> Tải về thư mục
+        </button>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="col-lg-7">
+
+      <!-- FILE QUEUE BOX -->
+      <div class="file-queue-box">
+        <div class="file-queue-header">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-list-ul" style="color:var(--primary);"></i>
+            <span style="font-size:13px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em;">Danh Sách File</span>
+            <span id="hanFilterBadge" class="han-badge" style="display:none;">
+              <i class="bi bi-funnel-fill"></i> Có Hán tự
+            </span>
+          </div>
+          <span id="fileCountBadge" style="font-size:12px; color:var(--muted); background:var(--bg); border:1px solid var(--border); border-radius:20px; padding:2px 10px;">0 file</span>
+        </div>
+        <div class="file-queue-scroll" id="fileQueue">
+          <div class="empty-state">
+            <i class="bi bi-inbox"></i>
+            <p>Chưa có file nào. Tải file lên để bắt đầu.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- PREVIEW PANEL -->
+      <div class="section-title mt-3"><i class="bi bi-code-square me-1"></i>Xem Nội Dung File</div>
+      <div class="preview-panel">
+        <div class="preview-header">
+          <div class="dot" style="background:#ef4444;"></div>
+          <div class="dot" style="background:#f59e0b;"></div>
+          <div class="dot" style="background:#10b981;"></div>
+          <div class="ms-2 text-white" style="font-size:13px; font-family:'JetBrains Mono',monospace;" id="previewFileName">— chưa chọn file —</div>
+          <div class="ms-auto preview-tabs">
+            <button class="preview-tab active" onclick="switchTab('original')">Gốc</button>
+            <button class="preview-tab" onclick="switchTab('translated')">Đã Dịch</button>
+            <button class="preview-tab" onclick="switchTab('diff')">So Sánh</button>
+          </div>
+        </div>
+        <div class="preview-body" id="previewBody">Chọn một file để xem nội dung...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Include demo dictionary -->
+<script src="mockDict.js"></script>
+
+<script>
+const state = {
+  files: [],
+  currentPreview: null,
+  currentTab: 'original',
+  isPaused: false,
+  isTranslating: false,
+  shouldStop: false
+};
+
+// ---- HAN DETECTION ----
+function containsHan(text) {
+  return /[\u4e00-\u9fff\u3400-\u4dbf\uff00-\uffef\u3000-\u303f]/.test(text);
+}
+
+function countHan(text) {
+  return (text.match(/[\u4e00-\u9fff\u3400-\u4dbf]/g) || []).length;
+}
+
+// ---- FILE ICON ----
+function fileIconClass(name) {
+  const ext = name.split('.').pop().toLowerCase();
+  if (ext === 'json') return 'json';
+  if (['config','cfg','ini','properties','toml'].includes(ext)) return 'config';
+  if (ext === 'txt') return 'txt';
+  return 'other';
+}
+
+function fileIconSymbol(name) {
+  const ext = name.split('.').pop().toLowerCase();
+  if (ext === 'json') return '<i class="bi bi-braces"></i>';
+  if (['config','cfg','ini','properties'].includes(ext)) return '<i class="bi bi-gear-fill"></i>';
+  if (ext === 'txt') return '<i class="bi bi-file-text-fill"></i>';
+  if (ext === 'xml') return '<i class="bi bi-file-code-fill"></i>';
+  if (ext === 'csv') return '<i class="bi bi-table"></i>';
+  return '<i class="bi bi-file-earmark-fill"></i>';
+}
+
+function formatSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1048576) return (bytes/1024).toFixed(1) + ' KB';
+  return (bytes/1048576).toFixed(2) + ' MB';
+}
+
+// ---- RENDER FILE QUEUE ----
+function renderQueue() {
+  const q = document.getElementById('fileQueue');
+  const onlyHan = document.getElementById('onlyHan').checked;
+  const hanBadge = document.getElementById('hanFilterBadge');
+  const countBadge = document.getElementById('fileCountBadge');
+
+  let files = state.files;
+  if (onlyHan) {
+    hanBadge.style.display = '';
+  } else {
+    hanBadge.style.display = 'none';
+  }
+  if (countBadge) {
+    const visible = onlyHan ? files.filter(f => f.hanCount > 0).length : files.length;
+    countBadge.textContent = visible + ' file';
+  }
+
+  if (files.length === 0) {
+    q.innerHTML = `<div class="empty-state"><i class="bi bi-inbox"></i><p>Chưa có file nào. Tải file lên để bắt đầu.</p></div>`;
+    return;
+  }
+
+  let html = '';
+  files.forEach((f, i) => {
+    const iconCls = fileIconClass(f.name);
+    const iconSym = fileIconSymbol(f.name);
+    const hasHan = f.hanCount > 0;
+    
+    if (onlyHan && !hasHan) return;
+
+    let statusHtml = '';
+    let progressHtml = '';
+    if (f.status === 'pending') {
+      statusHtml = hasHan
+        ? `<span class="file-status status-pending">Chờ dịch</span>`
+        : `<span class="file-status status-no-han"><i class="bi bi-slash-circle me-1"></i>Không có Hán tự</span>`;
+    } else if (f.status === 'translating') {
+      statusHtml = `<span class="file-status status-translating translating-pulse"><i class="bi bi-arrow-repeat me-1"></i>Đang dịch...</span>`;
+      progressHtml = `<div class="translate-progress"><div class="translate-progress-bar" id="prog_${i}" style="width:${f.progress||0}%"></div></div>`;
+    } else if (f.status === 'done') {
+      statusHtml = `<span class="file-status status-done"><i class="bi bi-check-circle-fill me-1"></i>Hoàn thành</span>`;
+    } else if (f.status === 'error') {
+      statusHtml = `<span class="file-status status-error"><i class="bi bi-x-circle-fill me-1"></i>Lỗi</span>`;
+    } else if (f.status === 'skipped') {
+      statusHtml = `<span class="file-status status-no-han">Bỏ qua</span>`;
+    }
+
+    html += `
+      <div class="file-card" onclick="selectFile(${i})" style="cursor:pointer; ${state.currentPreview===i ? 'border-color:var(--primary); box-shadow: 0 0 0 3px rgba(26,86,219,0.1);' : ''}">
+        <div class="file-icon ${iconCls}">${iconSym}</div>
+        <div class="file-meta">
+          <div class="file-name">${f.name}</div>
+          <div class="file-size">
+            ${formatSize(f.size)}
+            ${hasHan ? `&nbsp;·&nbsp;<span class="han-badge"><i class="bi bi-translate me-1"></i>${f.hanCount} Hán tự</span>` : ''}
+          </div>
+          ${progressHtml}
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          ${statusHtml}
+          <button class="btn btn-sm btn-outline-secondary" style="font-size:11px; padding: 3px 8px;" onclick="event.stopPropagation(); removeFile(${i})">
+            <i class="bi bi-x"></i>
+          </button>
+        </div>
+      </div>`;
+  });
+
+  if (!html) {
+    q.innerHTML = `<div class="empty-state"><i class="bi bi-funnel"></i><p>Không có file nào chứa Hán tự trong danh sách.</p></div>`;
+    return;
+  }
+  q.innerHTML = html;
+  updateStats();
+}
+
+function updateStats() {
+  const files = state.files;
+  document.getElementById('statTotal').textContent = files.length;
+  document.getElementById('statHan').textContent = files.filter(f=>f.hanCount>0).length;
+  document.getElementById('statDone').textContent = files.filter(f=>f.status==='done').length;
+  document.getElementById('statError').textContent = files.filter(f=>f.status==='error').length;
+
+  const hasTranslatable = files.some(f=>f.hanCount>0 && f.status==='pending');
+  document.getElementById('btnTranslate').disabled = !hasTranslatable;
+  const hasDone = files.some(f=>f.status==='done');
+  document.getElementById('btnDownload').disabled = !hasDone;
+}
+
+// ---- FILE INPUT ----
+document.getElementById('fileInput').addEventListener('change', function(e) {
+  handleFiles(Array.from(e.target.files));
+  this.value = '';
+});
+
+const dropZone = document.getElementById('dropZone');
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  handleFiles(Array.from(e.dataTransfer.files));
+});
+
+function handleFiles(files) {
+  const promises = files.map(f => new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const text = e.target.result;
+      resolve({
+        name: f.name,
+        size: f.size,
+        content: text,
+        hanCount: countHan(text),
+        status: 'pending',
+        progress: 0
+      });
+    };
+    reader.readAsText(f, 'utf-8');
+  }));
+
+  Promise.all(promises).then(fileObjs => {
+    fileObjs.forEach(fo => {
+      if (!state.files.find(x => x.name === fo.name)) {
+        state.files.push(fo);
+      }
+    });
+    renderQueue();
+    toast(`Đã thêm ${fileObjs.length} file`, 'success');
+  });
+}
+
+function removeFile(i) {
+  state.files.splice(i, 1);
+  if (state.currentPreview === i) state.currentPreview = null;
+  renderQueue();
+}
+
+function clearAll() {
+  state.files = [];
+  state.currentPreview = null;
+  document.getElementById('previewBody').textContent = 'Chọn một file để xem nội dung...';
+  document.getElementById('previewFileName').textContent = '— chưa chọn file —';
+  renderQueue();
+}
+
+// ---- SELECT FILE / PREVIEW ----
+function selectFile(i) {
+  state.currentPreview = i;
+  renderQueue();
+  renderPreview();
+}
+
+function switchTab(tab) {
+  state.currentTab = tab;
+  document.querySelectorAll('.preview-tab').forEach((t, idx) => {
+    t.classList.toggle('active', ['original','translated','diff'][idx] === tab);
+  });
+  renderPreview();
+}
+
+function renderPreview() {
+  const i = state.currentPreview;
+  if (i === null || !state.files[i]) return;
+  const f = state.files[i];
+  const body = document.getElementById('previewBody');
+  document.getElementById('previewFileName').textContent = f.name;
+
+  let content = '';
+  if (state.currentTab === 'original') {
+    content = f.content;
+    body.innerHTML = highlightHan(escapeHtml(content));
+  } else if (state.currentTab === 'translated') {
+    const t = f.translatedContent;
+    if (t) {
+      body.innerHTML = highlightTranslated(escapeHtml(t));
+    } else {
+      body.textContent = f.status === 'done' ? '(Nội dung đã dịch không tìm thấy)' : 'File chưa được dịch.';
+    }
+  } else {
+    const t = f.translatedContent;
+    if (t) {
+      body.innerHTML = renderDiff(f.content, t);
+    } else {
+      body.textContent = 'Chưa có bản dịch để so sánh.';
+    }
+  }
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function highlightHan(html) {
+  return html.replace(/([\u4e00-\u9fff\u3400-\u4dbf]+)/g, '<span class="highlight-han">$1</span>');
+}
+
+function highlightTranslated(html) {
+  return html;
+}
+
+function renderDiff(original, translated) {
+  const oLines = original.split('\n');
+  const tLines = translated.split('\n');
+  let html = '';
+  const max = Math.max(oLines.length, tLines.length);
+  for (let i = 0; i < max; i++) {
+    const o = oLines[i] || '';
+    const t = tLines[i] || '';
+    if (o !== t) {
+      html += `<div style="background:#fef9c3; border-left:3px solid #f59e0b; padding:1px 6px; margin:1px 0;">`;
+      html += `<span style="color:#92400e; opacity:0.6; display:block; text-decoration:line-through; font-size:11px;">${escapeHtml(o)}</span>`;
+      html += `<span style="color:#065f46;">${escapeHtml(t)}</span>`;
+      html += `</div>`;
+    } else {
+      html += `<div style="padding:1px 6px; margin:1px 0; color:#64748b; font-size:12px;">${escapeHtml(o)}</div>`;
+    }
+  }
+  return html;
+}
+
+function mockTranslateText(text) {
+  let result = text;
+  const sorted = Object.keys(mockDict).sort((a,b) => b.length - a.length);
+  sorted.forEach(zh => {
+    if (zh && result.includes(zh)) {
+      result = result.split(zh).join(mockDict[zh]);
+    }
+  });
+  return result;
+}
+
+// ---- GOOGLE TRANSLATE FREE (unofficial endpoint) ----
+async function googleTranslateFree(texts, source, target) {
+  const results = [];
+  for (const text of texts) {
+    if (!containsHan(text)) { results.push(text); continue; }
+    const sl = source === 'auto' ? 'auto' : source;
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sl}&tl=${target}&dt=t&q=${encodeURIComponent(text)}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`Google Translate lỗi ${res.status}`);
+    const data = await res.json();
+    // data[0] is array of [translated, original, ...]
+    const translated = data[0].map(seg => seg[0]).join('');
+    results.push(translated);
+    await new Promise(r => setTimeout(r, 120)); // rate limit
+  }
+  return results;
+}
+
+// ---- MYMEMORY BACKUP ----
+async function myMemoryTranslate(texts, source, target) {
+  const sl = source === 'auto' ? 'zh' : source.split('-')[0];
+  const results = [];
+  for (const text of texts) {
+    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${sl}|${target}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    results.push(data.responseData.translatedText || text);
+    await new Promise(r => setTimeout(r, 200));
+  }
+  return results;
+}
+
+// ---- SMART VALUE TRANSLATE ----
+function extractTranslatableStrings(content, fileName) {
+  const ext = fileName.split('.').pop().toLowerCase();
+  const strings = [];
+  
+  if (ext === 'json' || ext === 'config') {
+    try {
+      const obj = JSON.parse(content);
+      function walk(o, path) {
+        if (typeof o === 'string' && containsHan(o)) {
+          strings.push({ path, value: o });
+        } else if (typeof o === 'object' && o !== null) {
+          Object.entries(o).forEach(([k, v]) => walk(v, [...path, k]));
+        }
+      }
+      walk(obj, []);
+      return { type: 'json', strings };
+    } catch(e) {}
+  }
+  
+  // Line-by-line for other formats
+  const lines = content.split('\n');
+  lines.forEach((line, i) => {
+    const hanMatches = line.match(/[\u4e00-\u9fff\u3400-\u4dbf]+(?:[^\u4e00-\u9fff\u3400-\u4dbf\n]*[\u4e00-\u9fff\u3400-\u4dbf]+)*/g);
+    if (hanMatches) {
+      hanMatches.forEach(m => strings.push({ lineIndex: i, value: m, original: line }));
+    }
+  });
+  return { type: 'lines', strings, lines };
+}
+
+function applyTranslations(content, fileName, translationMap) {
+  // Always do direct string replacement to preserve 100% original format/whitespace/structure
+  // Sort by length descending to replace longer strings first (avoid partial replacements)
+  let result = content;
+  const sorted = Object.entries(translationMap).sort((a, b) => b[0].length - a[0].length);
+  sorted.forEach(([zh, vi]) => {
+    if (!zh || !vi) return;
+    // Replace only inside JSON string values: match "zh" pattern keeping surrounding quotes intact
+    // This avoids accidentally replacing keys or structural characters
+    const escaped = zh.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    try {
+      // Replace occurrences that appear as JSON string values (between quotes)
+      result = result.replace(new RegExp(escaped, 'g'), vi);
+    } catch(e) {
+      result = result.split(zh).join(vi);
+    }
+  });
+  return result;
+}
+
+// ---- PAUSE / STOP CONTROLS ----
+function togglePause() {
+  state.isPaused = !state.isPaused;
+  const icon = document.getElementById('pauseIcon');
+  if (state.isPaused) {
+    icon.className = 'bi bi-play-fill';
+    document.getElementById('btnPause').style.background = '#059669';
+    toast('⏸ Đã tạm dừng — nhấn lại để tiếp tục', 'warning');
+  } else {
+    icon.className = 'bi bi-pause-fill';
+    document.getElementById('btnPause').style.background = '#f59e0b';
+    toast('▶ Tiếp tục dịch...', 'success');
+  }
+}
+
+function stopTranslation() {
+  state.shouldStop = true;
+  state.isPaused = false;
+  toast('⏹ Đang dừng sau chunk hiện tại...', 'warning');
+}
+
+function setTranslatingUI(active) {
+  document.getElementById('btnTranslate').style.display = active ? 'none' : '';
+  document.getElementById('btnPause').style.display = active ? '' : 'none';
+  document.getElementById('btnStop').style.display = active ? '' : 'none';
+  state.isTranslating = active;
+  if (!active) {
+    state.isPaused = false;
+    state.shouldStop = false;
+    document.getElementById('pauseIcon').className = 'bi bi-pause-fill';
+    document.getElementById('btnPause').style.background = '#f59e0b';
+  }
+}
+
+// Wait while paused
+async function waitIfPaused() {
+  while (state.isPaused && !state.shouldStop) {
+    await new Promise(r => setTimeout(r, 300));
+  }
+}
+
+// ---- MAIN TRANSLATION ----
+async function startTranslation() {
+  const onlyHan = document.getElementById('onlyHan').checked;
+  const engine = document.getElementById('engineMode').value;
+  const source = document.getElementById('sourceLang').value;
+  const target = document.getElementById('targetLang').value;
+
+  const toTranslate = state.files.filter(f => f.hanCount > 0 && f.status === 'pending');
+  if (toTranslate.length === 0) {
+    toast('Không có file nào cần dịch!', 'warning');
+    return;
+  }
+
+  state.shouldStop = false;
+  setTranslatingUI(true);
+
+  for (let fi = 0; fi < state.files.length; fi++) {
+    if (state.shouldStop) break;
+
+    const f = state.files[fi];
+    if (f.hanCount === 0) { f.status = 'skipped'; continue; }
+    if (f.status !== 'pending') continue;
+
+    f.status = 'translating';
+    f.progress = 10;
+    renderQueue();
+
+    try {
+      const { strings } = extractTranslatableStrings(f.content, f.name);
+      const uniqueValues = [...new Set(strings.map(s => s.value))].filter(v => containsHan(v));
+      const translationMap = {};
+      const CHUNK = 10;
+
+      for (let ci = 0; ci < uniqueValues.length; ci += CHUNK) {
+        if (state.shouldStop) break;
+        await waitIfPaused();
+        if (state.shouldStop) break;
+
+        const chunk = uniqueValues.slice(ci, ci + CHUNK);
+        let translations;
+        if (engine === 'mock') {
+          translations = chunk.map(t => mockTranslateText(t));
+          await new Promise(r => setTimeout(r, 100));
+        } else if (engine === 'mymemory') {
+          translations = await myMemoryTranslate(chunk, source, target);
+        } else {
+          translations = await googleTranslateFree(chunk, source, target);
+        }
+
+        chunk.forEach((zh, idx) => { translationMap[zh] = translations[idx]; });
+        f.progress = Math.min(90, 10 + ((ci + CHUNK) / uniqueValues.length) * 80);
+        const progBar = document.getElementById(`prog_${fi}`);
+        if (progBar) progBar.style.width = f.progress + '%';
+        renderQueue();
+      }
+
+      if (state.shouldStop) {
+        f.status = 'pending';
+        f.progress = 0;
+        renderQueue();
+        break;
+      }
+
+      let result = f.content;
+      const sortedPairs = Object.entries(translationMap).sort((a,b) => b[0].length - a[0].length);
+      sortedPairs.forEach(([zh, vi]) => {
+        if (!zh || !vi || zh === vi) return;
+        try {
+          const esc = zh.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          result = result.replace(new RegExp(esc, 'g'), vi);
+        } catch(e) { result = result.split(zh).join(vi); }
+      });
+      f.translatedContent = result;
+      f.progress = 100;
+      f.status = 'done';
+      toast(`✓ Đã dịch: ${f.name}`, 'success');
+    } catch(e) {
+      f.status = 'error';
+      f.translatedContent = null;
+      toast(`Lỗi dịch ${f.name}: ${e.message}`, 'error');
+    }
+
+    renderQueue();
+    if (state.currentPreview === fi) renderPreview();
+  }
+
+  setTranslatingUI(false);
+  updateStats();
+  if (!state.shouldStop) toast('✅ Hoàn tất quá trình dịch!', 'success');
+  else toast('⏹ Đã dừng. Nhấn Bắt Đầu Dịch để tiếp tục.', 'warning');
+}
+
+// ---- DOWNLOAD ----
+async function downloadAll() {
+  const done = state.files.filter(f => f.status === 'done' && f.translatedContent);
+  if (done.length === 0) { toast('Không có file đã dịch!', 'warning'); return; }
+
+  // Try File System Access API (chọn thư mục)
+  if (window.showDirectoryPicker) {
+    try {
+      const dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+      let count = 0;
+      for (const f of state.files) {
+        if (f.status !== 'done' || !f.translatedContent) continue;
+        const fileHandle = await dirHandle.getFileHandle(f.name, { create: true });
+        const writable = await fileHandle.createWritable();
+        await writable.write(new Blob([f.translatedContent], {type:'text/plain;charset=utf-8'}));
+        await writable.close();
+        count++;
+      }
+      toast(`✓ Đã lưu ${count} file vào thư mục bạn chọn!`, 'success');
+      return;
+    } catch(e) {
+      if (e.name === 'AbortError') return; // user cancelled
+      // fallback to normal download
+    }
+  }
+
+  // Fallback: download từng file, giữ tên gốc
+  state.files.forEach(f => {
+    if (f.status !== 'done' || !f.translatedContent) return;
+    const blob = new Blob([f.translatedContent], {type:'text/plain;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = f.name; // giữ nguyên tên gốc
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+  toast(`Đã tải ${done.length} file (tên giữ nguyên)!`, 'success');
+}
+
+
+
+// ---- TOAST ----
+function toast(msg, type = 'info') {
+  const icons = {success:'bi-check-circle-fill', error:'bi-x-circle-fill', warning:'bi-exclamation-triangle-fill', info:'bi-info-circle-fill'};
+  const colors = {success:'#10b981', error:'#ef4444', warning:'#f59e0b', info:'var(--primary)'};
+  const t = document.createElement('div');
+  t.className = 'toast-msg';
+  t.innerHTML = `<i class="bi ${icons[type]||icons.info}" style="color:${colors[type]};"></i> ${msg}`;
+  document.getElementById('toastContainer').appendChild(t);
+  setTimeout(() => { t.style.opacity='0'; t.style.transition='opacity 0.4s'; setTimeout(()=>t.remove(), 400); }, 3000);
+}
+
+// ---- SECTION SWITCH (stubbed) ----
+function showSection(s) {
+  toast(`Chuyển sang: ${s}`, 'info');
+}
+
+// ---- ENGINE NOTE ----
+document.addEventListener('DOMContentLoaded', () => {
+  const sel = document.getElementById('engineMode');
+  const note = document.getElementById('engineNote');
+  if (sel && note) {
+    sel.addEventListener('change', () => {
+      const notes = {
+        google_free: 'Không cần API key — dùng trực tiếp Google Translate',
+        mymemory: 'Miễn phí, giới hạn ~5000 ký tự/ngày, không cần API key',
+        mock: 'Offline, chỉ dịch được ~20 từ trong từ điển mẫu'
+      };
+      note.textContent = notes[sel.value] || '';
+    });
+  }
+});
+
+// ---- INIT ----
+document.getElementById('onlyHan').addEventListener('change', renderQueue);
+
+// Demo: load sample file
+
+</script>
+</body>
+</html>

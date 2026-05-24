@@ -384,7 +384,7 @@ body {
         </button>
         <p class="mt-2" style="font-size:12px; color:#94a3b8;">Có thể chọn nhiều file cùng lúc</p>
       </div>
-      <input type="file" id="fileInput" multiple accept=".txt,.json,.config,.xml,.csv,.ini,.yaml,.log,.cfg,.properties,.toml" style="display:none">
+      <input type="file" id="fileInput" multiple accept=".txt,.json,.xml,.csv,.yaml,.log,text/*" style="display:none">
 
       <!-- STATS ROW -->
       <div class="row g-2 mt-3">
@@ -523,7 +523,19 @@ body {
 <div class="toast-container" id="toastContainer"></div>
 
 <!-- Include demo dictionary -->
-<script src="mockDict.js"></script>
+<script>
+const mockDict = {
+  "你好": "Xin chào",
+  "谢谢": "Cảm ơn",
+  "再见": "Tạm biệt",
+  "我": "Tôi",
+  "他": "Anh ấy",
+  "她": "Cô ấy",
+  "这是": "Đây là",
+  "那是": "Đó là",
+  "朋友": "Bạn bè"
+};
+</script>
 
 <script>
 const state = {
@@ -811,10 +823,9 @@ async function googleTranslateFree(texts, source, target) {
     const res = await fetch(url);
     if (!res.ok) throw new Error(`Google Translate lỗi ${res.status}`);
     const data = await res.json();
-    // data[0] is array of [translated, original, ...]
     const translated = data[0].map(seg => seg[0]).join('');
     results.push(translated);
-    await new Promise(r => setTimeout(r, 120)); // rate limit
+    await new Promise(r => setTimeout(r, 120));
   }
   return results;
 }
@@ -853,7 +864,6 @@ function extractTranslatableStrings(content, fileName) {
     } catch(e) {}
   }
   
-  // Line-by-line for other formats
   const lines = content.split('\n');
   lines.forEach((line, i) => {
     const hanMatches = line.match(/[\u4e00-\u9fff\u3400-\u4dbf]+(?:[^\u4e00-\u9fff\u3400-\u4dbf\n]*[\u4e00-\u9fff\u3400-\u4dbf]+)*/g);
@@ -865,17 +875,12 @@ function extractTranslatableStrings(content, fileName) {
 }
 
 function applyTranslations(content, fileName, translationMap) {
-  // Always do direct string replacement to preserve 100% original format/whitespace/structure
-  // Sort by length descending to replace longer strings first (avoid partial replacements)
   let result = content;
   const sorted = Object.entries(translationMap).sort((a, b) => b[0].length - a[0].length);
   sorted.forEach(([zh, vi]) => {
     if (!zh || !vi) return;
-    // Replace only inside JSON string values: match "zh" pattern keeping surrounding quotes intact
-    // This avoids accidentally replacing keys or structural characters
     const escaped = zh.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     try {
-      // Replace occurrences that appear as JSON string values (between quotes)
       result = result.replace(new RegExp(escaped, 'g'), vi);
     } catch(e) {
       result = result.split(zh).join(vi);
@@ -918,7 +923,6 @@ function setTranslatingUI(active) {
   }
 }
 
-// Wait while paused
 async function waitIfPaused() {
   while (state.isPaused && !state.shouldStop) {
     await new Promise(r => setTimeout(r, 300));
@@ -1022,7 +1026,6 @@ async function downloadAll() {
   const done = state.files.filter(f => f.status === 'done' && f.translatedContent);
   if (done.length === 0) { toast('Không có file đã dịch!', 'warning'); return; }
 
-  // Try File System Access API (chọn thư mục)
   if (window.showDirectoryPicker) {
     try {
       const dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
@@ -1038,26 +1041,22 @@ async function downloadAll() {
       toast(`✓ Đã lưu ${count} file vào thư mục bạn chọn!`, 'success');
       return;
     } catch(e) {
-      if (e.name === 'AbortError') return; // user cancelled
-      // fallback to normal download
+      if (e.name === 'AbortError') return;
     }
   }
 
-  // Fallback: download từng file, giữ tên gốc
   state.files.forEach(f => {
     if (f.status !== 'done' || !f.translatedContent) return;
     const blob = new Blob([f.translatedContent], {type:'text/plain;charset=utf-8'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = f.name; // giữ nguyên tên gốc
+    a.download = f.name;
     a.click();
     URL.revokeObjectURL(url);
   });
   toast(`Đã tải ${done.length} file (tên giữ nguyên)!`, 'success');
 }
-
-
 
 // ---- TOAST ----
 function toast(msg, type = 'info') {
@@ -1093,9 +1092,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ---- INIT ----
 document.getElementById('onlyHan').addEventListener('change', renderQueue);
-
-// Demo: load sample file
-
 </script>
 </body>
 </html>
